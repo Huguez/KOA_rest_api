@@ -1,30 +1,43 @@
 const Koa = require("koa");
 const Router = require("koa-router");
+const bodyParser = require('koa-bodyparser');
 
-const { getUser } = require("../controllers/user")
+const userRouter = require("../routes/user");
 
 class Server {
 
     constructor(){
         this.app = new Koa();
         this.router = new Router();
+        this.port = 3000;
 
+        this.base = "/api/v1"
+        this.path = {
+            userPath: `${ this.base }/user`,
+        }
 
-        this.routers()
+        this.middlewares()
+
+        this.routers();
     }
 
     routers(){
-        this.router.get("/", getUser );
+        this.router.use( this.path["userPath"] , userRouter.routes() );
 
         this.app.use( this.router.routes() )
         this.app.use( this.router.allowedMethods() )
     }
 
-    start(){
-        const port = 3000
+    middlewares(){
+        this.app.use( bodyParser() );
 
-        this.app.listen( port, () => {
-            console.log( `http://localhost:${ port }/` )
+    }
+
+    start(){
+        this.app.listen( this.port, () => {
+            console.log( `Server up!!!` );
+            //To Do: base datos!!!
+            console.log( `Running on http://localhost:${ this.port }/` )
         } );
     }
 }
