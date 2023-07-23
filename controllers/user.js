@@ -1,15 +1,24 @@
+const UserModel  = require("../models/User");
+const bcrypyjs = require("bcryptjs");
 
-const createUser = async ( ctx, next ) => {
+const salt = bcrypyjs.genSaltSync()
+
+const createUser = async ( ctx ) => {
     try {
-        const { body } = ctx.request;        
+        const { body } = ctx.request;
 
-        ctx.status = 200
+        const tempPass = body.password;
+        const hashPasword = bcrypyjs.hashSync( tempPass, salt )
+
+        const user = await UserModel.create( body );
+        user.password = hashPasword;
+
+        await user.save();
+
+        ctx.status = 201
         ctx.body = {
-            msg: "createUser!!!",
-            body
+            user,
         }
-
-        await next();
     } catch( err ){
         console.log( err )
         ctx.status = 400;
@@ -19,15 +28,32 @@ const createUser = async ( ctx, next ) => {
     }
 }
 
-const getUserById = ( ctx, next ) => {
+const getUserById = async ( ctx ) => {
     try {
-        const { request, response } = ctx
         const userId = ctx.params.id
 
+        const user = await UserModel.findOne( { 
+            attributes: [ 'id', 'email', "name", "password", "status" ],
+            where:{ id: userId } 
+        } );
+
+        if( !user ){
+            ctx.status = 404;
+            return ctx.body = {
+                msg: `the e-mail ${ body.email } isn't exist !!!`,
+            }
+        }
+        
+        if ( !user["dataValues"].status ) {
+            ctx.status = 406;
+            return ctx.body = {
+                msg: `the e-mail ${ body.email } have a status inactive !!!`,
+            }  
+        }
+
         ctx.status = 200
         ctx.body = {
-            msg: "getUserById!!!",
-            user: userId
+            user
         }
     } catch (error) {
         ctx.status = 500
@@ -37,31 +63,17 @@ const getUserById = ( ctx, next ) => {
     }
 }
 
-const getUsers = ( ctx, next ) => {
-    try {
-        const { request, response } = ctx
-
-        ctx.status = 200
-        ctx.body = {
-            msg: "getUsers!!!",
-        }
-    } catch (error) {
-        ctx.status = 500
-        ctx.body = {
-            msg: "Error!!!",
-        }
-    }
-}
-
-const updateUser = ( ctx, next ) => {
+const getUsers = async ( ctx ) => {
     try {
         // const { request, response } = ctx
-        const userId = ctx.params.id
+        const users = await UserModel.findAll({ 
+            attributes: [ "id", "name", "email", "status" ],
+            where:{ status: true } 
+        } );
 
         ctx.status = 200
         ctx.body = {
-            msg: "updateUser!!!",
-            userId
+            users
         }
     } catch (error) {
         ctx.status = 500
@@ -71,20 +83,91 @@ const updateUser = ( ctx, next ) => {
     }
 }
 
-const deleteUser = ( ctx, next ) => {
+const updateUser = async ( ctx ) => {
     try {
-        const { request, response } = ctx
         const userId = ctx.params.id
+        const { body } = ctx.request
+
+        const user =  await UserModel.findOne( {
+            attributes: [ "id", "email", "status" ],
+            where: { id: userId }
+        } )
         
-        ctx.status = 200
+        if( !user ){
+            ctx.status = 404;
+            return ctx.body = {
+                msg: `the user isn't exist!!!`
+            }
+        }
+
+        // To-Do: validar si el usuario del token es el mismo que del parametro
+        
+        if( !user["dataValues"].status ){
+            ctx.status = 406;
+            return ctx.body = {
+                msg: `the user have status inactive!!!`
+            }
+        }
+
+        const tempPass = body.password;
+        const hashPasword = bcrypyjs.hashSync( tempPass, salt )
+
+        await user.set( {
+            ...body,
+            password: hashPasword,
+        } );
+
+        await user.save()
+
+        ctx.status = 200;
         ctx.body = {
-            msg: "deleteUser!!!",
-            userId
+            user,
         }
     } catch (error) {
         ctx.status = 500
         ctx.body = {
-            msg: "Error!!!",
+            msg: "Error en Update user !!!",
+        }
+    }
+}
+
+const deleteUser = async ( ctx ) => {
+    try {
+        const userId = ctx.params.id
+        
+        const user = await UserModel.findOne( { 
+            attributes: [ 'id', 'email', "name", "password", "status" ],
+            where:{ id: userId } 
+        } );
+        
+        if( !user ){
+            ctx.status = 404;
+            return ctx.body = {
+                msg: `the e-mail isn't exist !!!`,
+            }
+        }
+        
+        if ( !user["dataValues"].status ) {
+            ctx.status = 406;
+            return ctx.body = {
+                msg: `the e-mail ${ user["dataValues"].email } have a status inactive !!!`,
+            } 
+        }
+
+        await user.set( {
+            status: false
+        } )
+
+        await user.save()
+        
+        ctx.status = 200
+        return ctx.body = {
+            user
+        }
+    } catch (error) {
+        ctx.status = 500
+        ctx.body = {
+            msg: "Error en Delete user!!!",
         }
     }
 }
