@@ -12,6 +12,11 @@ const notFound = require("../middlewares/notFound")
 const userRouter = require("../routes/user");
 const authRouter = require("../routes/auth");
 
+const User = require("./User");
+const Product = require("../models/Product")
+const { Order, OrderItem } = require("../models/Order")
+const { Cart, CartItem } = require("../models/Cart");
+
 class Server {
 
     constructor(){
@@ -49,7 +54,28 @@ class Server {
     }
 
     #connectDB(){
-        sqlz.sync({ force: true }).then( () => {
+        Product.belongsTo( User, {  // foreign key en Product
+            constrains: true,
+            onDelete: "CASCADE"
+        } );
+        User.hasMany( Product );  // foreign key en Product
+        
+        Product.belongsToMany( Cart, { through: CartItem } ); // CartItem used as junction table
+        Cart.belongsToMany( Product, { through: CartItem } ); // CartItem used as junction table
+
+        User.hasOne( Cart );      // foreign key en Cart
+        Cart.belongsTo( User );   // foreign key en Cart
+        
+        User.hasMany( Order );    // foreign key en Order
+        Order.belongsTo( User );  // foreign key en Order
+
+        Order.belongsToMany( Product, { through: OrderItem } ); // OrderItem used as junction table
+        Product.belongsTo( Order, { through: OrderItem } );     // OrderItem used as junction table
+
+        const { NODE_ENV } = process.env
+        const setting = NODE_ENV === "development" ? { force: true } : {} 
+        
+        sqlz.sync( setting ).then( () => {
             console.log( "Connection to DB done!!" )
         } ).catch( ( err ) => {
             console.log( err )
