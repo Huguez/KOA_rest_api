@@ -7,6 +7,7 @@ require('dotenv').config()
 const path = require('path');
 
 const sqlz = require("../db/config")
+const notFound = require("../middlewares/notFound")
 
 const userRouter = require("../routes/user");
 const authRouter = require("../routes/auth");
@@ -33,8 +34,11 @@ class Server {
         this.router.use( this.path["userPath"], userRouter.routes() );
         this.router.use( this.path["authPath"], authRouter.routes() );
         
+
         this.app.use( this.router.routes() )
         this.app.use( this.router.allowedMethods() )
+
+        this.app.use( notFound )
     }
 
     #middlewares(){
