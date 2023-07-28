@@ -120,7 +120,7 @@ const updateUser = async ( ctx ) => {
         await user.save()
 
         ctx.status = 200;
-        ctx.body = {
+        return ctx.body = {
             user,
         }
     } catch (error) {

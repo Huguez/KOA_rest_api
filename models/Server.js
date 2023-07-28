@@ -11,6 +11,7 @@ const notFound = require("../middlewares/notFound")
 
 const userRouter = require("../routes/user");
 const authRouter = require("../routes/auth");
+const productRouter = require("../routes/product");
 
 const User = require("./User");
 const Product = require("../models/Product")
@@ -28,6 +29,7 @@ class Server {
         this.path = {
             userPath: `${ this.base }/user`,
             authPath: `${ this.base }/auth`,
+            productPath: `${ this.base }/product`,
         }
       
         this.#middlewares()
@@ -36,9 +38,9 @@ class Server {
     }
 
     #routers(){
-        this.router.use( this.path["userPath"], userRouter.routes() );
-        this.router.use( this.path["authPath"], authRouter.routes() );
-        
+        this.router.use( this.path["userPath"],    userRouter.routes() );
+        this.router.use( this.path["authPath"],    authRouter.routes() );
+        this.router.use( this.path["productPath"], productRouter.routes() );
 
         this.app.use( this.router.routes() )
         this.app.use( this.router.allowedMethods() )
@@ -50,7 +52,7 @@ class Server {
         const staticDirPath = path.join( __dirname, '../public' );
         this.app.use( KoaStatic( staticDirPath ) );
         
-        this.app.use( bodyParser() );
+        this.app.use( bodyParser() ); //app.use(bodyParser.urlencoded({ extended: false }));
     }
 
     #connectDB(){
@@ -58,13 +60,14 @@ class Server {
             constrains: true,
             onDelete: "CASCADE"
         } );
+        
         User.hasMany( Product );  // foreign key en Product
+        User.hasOne( Cart );      // foreign key en Cart
+        
+        Cart.belongsTo( User );   // foreign key en Cart
+        Cart.belongsToMany( Product, { through: CartItem } ); // CartItem used as junction table
         
         Product.belongsToMany( Cart, { through: CartItem } ); // CartItem used as junction table
-        Cart.belongsToMany( Product, { through: CartItem } ); // CartItem used as junction table
-
-        User.hasOne( Cart );      // foreign key en Cart
-        Cart.belongsTo( User );   // foreign key en Cart
         
         User.hasMany( Order );    // foreign key en Order
         Order.belongsTo( User );  // foreign key en Order
@@ -73,7 +76,7 @@ class Server {
         Product.belongsTo( Order, { through: OrderItem } );     // OrderItem used as junction table
 
         const { NODE_ENV } = process.env
-        const setting = NODE_ENV === "development" ? { force: true } : {} 
+        const setting = NODE_ENV !== "development" ? { force: true } : {} 
         
         sqlz.sync( setting ).then( () => {
             console.log( "Connection to DB done!!" )
