@@ -52,7 +52,7 @@ const getProducts = async ( ctx ) => {
         
         ctx.status = 200;
         return ctx.body = {
-            products
+            products,
         }
     } catch( error ){
         console.log( error )

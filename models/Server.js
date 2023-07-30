@@ -12,6 +12,7 @@ const notFound = require("../middlewares/notFound")
 const userRouter = require("../routes/user");
 const authRouter = require("../routes/auth");
 const productRouter = require("../routes/product");
+const cartRouter = require("../routes/cart");
 
 const User = require("./User");
 const Product = require("../models/Product")
@@ -30,6 +31,7 @@ class Server {
             userPath: `${ this.base }/user`,
             authPath: `${ this.base }/auth`,
             productPath: `${ this.base }/product`,
+            cartPath: `${ this.base }/cart`,
         }
       
         this.#middlewares()
@@ -41,6 +43,7 @@ class Server {
         this.router.use( this.path["userPath"],    userRouter.routes() );
         this.router.use( this.path["authPath"],    authRouter.routes() );
         this.router.use( this.path["productPath"], productRouter.routes() );
+        this.router.use( this.path["cartPath"],    cartRouter.routes() );
 
         this.app.use( this.router.routes() )
         this.app.use( this.router.allowedMethods() )

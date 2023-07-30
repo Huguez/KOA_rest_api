@@ -9,7 +9,7 @@ const generarToken = async ( id = "" ) => {
         jwt.sign( payload, key, { expiresIn: "24h" }, ( err, token ) => {
             if( err ){
                 console.log( err );
-                reject( err )
+                reject( new Error( "Error generarToken - JWT" ) )
             }else{
                 resolve( token )
             }
