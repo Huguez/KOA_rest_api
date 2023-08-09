@@ -13,6 +13,7 @@ const userRouter = require("../routes/user");
 const authRouter = require("../routes/auth");
 const productRouter = require("../routes/product");
 const cartRouter = require("../routes/cart");
+const orderRouter = require("../routes/order");
 
 const User = require("./User");
 const Product = require("../models/Product")
@@ -28,10 +29,11 @@ class Server {
 
         this.base = "/api/v1"
         this.path = {
-            userPath: `${ this.base }/user`,
-            authPath: `${ this.base }/auth`,
+            userPath:    `${ this.base }/user`,
+            authPath:    `${ this.base }/auth`,
             productPath: `${ this.base }/product`,
-            cartPath: `${ this.base }/cart`,
+            cartPath:    `${ this.base }/cart`,
+            orderPath:   `${ this.base }/order`,
         }
       
         this.#middlewares()
@@ -44,6 +46,7 @@ class Server {
         this.router.use( this.path["authPath"],    authRouter.routes() );
         this.router.use( this.path["productPath"], productRouter.routes() );
         this.router.use( this.path["cartPath"],    cartRouter.routes() );
+        this.router.use( this.path["orderPath"],   orderRouter.routes() );
 
         this.app.use( this.router.routes() )
         this.app.use( this.router.allowedMethods() )
@@ -75,11 +78,11 @@ class Server {
         User.hasMany( Order );    // foreign key en Order
         Order.belongsTo( User );  // foreign key en Order
 
-        Order.belongsToMany( Product, { through: OrderItem } ); // OrderItem used as junction table
-        Product.belongsTo( Order, { through: OrderItem } );     // OrderItem used as junction table
+        Order.hasMany( Product ); // foreign key en Product
+        Product.belongsToMany( Order, { through: OrderItem } );     // OrderItem used as junction table
 
         const { NODE_ENV } = process.env
-        const setting = NODE_ENV !== "development" ? { force: true } : {} 
+        const setting = NODE_ENV === "development" ? { force: true } : {} 
         
         sqlz.sync( setting ).then( () => {
             console.log( "Connection to DB done!!" )
