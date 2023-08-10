@@ -1,12 +1,15 @@
 const ModelProduct = require("../models/Product")
-const ModelUser = require("../models/User")
+const { comprobarJWT } = require("../helpers/JWT")
+
 
 const createProduct = async ( ctx ) => {
     try {
         const { body } = ctx.request;
+        const { request } = ctx
+        const { token } = request.headers
 
-        const user = await ModelUser.findOne( { where: { id: 1 } } )
-
+        const user = await comprobarJWT( token )
+        
         const product = await user.createProduct( { ...body } )
 
         await product.save()
@@ -30,7 +33,6 @@ const getProductById = async ( ctx ) => {
         const productId = ctx.params.id
 
         const product = await ModelProduct.findOne( { where: { id: productId } } )
-
         
         ctx.status = 200;
         return ctx.body = {
@@ -69,7 +71,6 @@ const updateProduct = async ( ctx ) => {
         const { body } = ctx.request;
         const productId = ctx.params.id;
 
-
         const product = await ModelProduct.findOne( {
             attributes: [ "id", "name", "price", "status" ],
             where: { id: productId }
@@ -80,7 +81,6 @@ const updateProduct = async ( ctx ) => {
         })
 
         await product.save();
-        
         
         ctx.status = 200;
         return ctx.body = {
