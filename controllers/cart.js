@@ -1,17 +1,28 @@
 const UserModel = require("../models/User")
 const ProductModel = require("../models/Product")
+const { comprobarJWT } = require("../helpers/JWT")
 
 const getCart = async ( ctx ) => {
     try {
-        const user = await UserModel.findOne({ where: { id: 4 } })
+        const { request } = ctx
+        const { token } = request.headers
+
+        const user = await comprobarJWT( token )
+        
+        if( !user ){
+            ctx.status = 404
+            return ctx.body = {
+                msg: "Usuario no encontrado!!!"
+            }    
+        }
 
         const cart = await user.getCart()
 
-        const products = await cart.getProducts()
-
+        const products =  await cart.getProducts()
+        
         ctx.status = 200
         return ctx.body = {
-            cart: products
+            cart: products,
         }
     } catch (error) {
         console.log( error )
@@ -25,8 +36,10 @@ const getCart = async ( ctx ) => {
 const updateCart = async ( ctx ) => {
     try {
         const { productId } = ctx.request.body
+        const { request } = ctx
+        const { token } = request.headers
 
-        const user = await UserModel.findOne({ where: { id: 4 } })
+        const user = await comprobarJWT( token )
 
         const cart = await user.getCart()
 
@@ -66,8 +79,10 @@ const updateCart = async ( ctx ) => {
 const deleteCart = async ( ctx ) => {
     try {
         const { productId } = ctx.request.body
+        const { request } = ctx
+        const { token } = request.headers
 
-        const user = await UserModel.findOne({ where: { id: 4 } })
+        const user = await comprobarJWT( token )
 
         const cart = await user.getCart()
 
