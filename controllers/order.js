@@ -1,10 +1,13 @@
-const UserModel = require("../models/User")
 
+const { comprobarJWT } = require("../helpers/JWT")
 const { Order: OrderModel } = require("../models/Order")
 
 const createOrder = async ( ctx ) => {
     try {
-        const user = await UserModel.findByPk( 1 )
+        const { request } = ctx
+        const { token } = request.headers
+
+        const user = await comprobarJWT( token )
         
         const cart = await user.getCart()
 
@@ -39,9 +42,12 @@ const createOrder = async ( ctx ) => {
 
 const getOrders = async ( ctx ) => {    
     try {
-        // const user = await UserModel.findByPk( 4 )
+        const { request } = ctx
+        const { token } = request.headers
 
-        const orders = await OrderModel.findAll({ offset: 0, limit: 40, where:{ userId: 1 } })
+        const user = await comprobarJWT( token )
+        
+        const orders = await OrderModel.findAll({ offset: 0, limit: 40, where:{ userId: user["dataValues"].id } })
 
         ctx.status = 200
         return ctx.body = {
@@ -59,11 +65,10 @@ const getOrders = async ( ctx ) => {
 const getOrderById = async ( ctx ) => {
     try {
         const orderId = ctx.params.id
-
-        const orderAux = await OrderModel.findOne({ where:{ id: orderId } })
+        
+        const orderAux = await OrderModel.findOne({ where:{ orderId } })
 
         const products = await orderAux.getProducts()
-        // { where: { orderId: orderId } }
         
         ctx.status = 200
         return ctx.body = {
@@ -86,8 +91,6 @@ const updateOrder = async ( ctx ) => {
     try {
         const orderId = ctx.params.id
         const { address } = ctx.request.body
-
-        // const user = await UserModel.findOne({ where: { id: 1 } })
 
         const order = await OrderModel.findAll( { where: { id: orderId }  } )
         

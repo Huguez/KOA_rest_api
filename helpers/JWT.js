@@ -19,15 +19,15 @@ const generarToken = async ( id = "" ) => {
 
 const comprobarJWT = async ( token ) => {
     try{
-        if( !!token || token.length < 10 ){
-            return null
+        if( !token ){
+            return false
         }
         
         const { id } = jwt.verify( token, process.env.SECRET_KEY )
         const user = await UserModel.findByPk( id )
-
+        
         if( !user || !user.status ){
-            return null
+            return false
         } else {
             return user;
         }

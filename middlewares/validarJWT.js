@@ -6,13 +6,21 @@ const validarJWT = async ( ctx, next ) => {
         const { request:{ headers } } = ctx
         const token = headers["token"]
 
-        console.log( token )
+        if (!token) {
+            ctx.status = 400
+            return ctx.body = {
+                msg: "No hay token!!!",
+            }    
+        }else{
+            await next();
+        }
 
-        await next();
     } catch (error) {
+        console.log( error )
         ctx.status = 500
-        ctx.body = {
-            msg: "Error en el servidor"
+        return ctx.body = {
+            msg: "Error en validarJWT.js",
+            error
         }
     }
 } 
