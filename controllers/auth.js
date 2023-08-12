@@ -1,4 +1,4 @@
-const { generarToken } = require("../helpers/JWT");
+const { generarToken, comprobarJWT, isExpiredJWT } = require("../helpers/JWT");
 const UserModel = require("../models/User");
 const bcrypyjs = require("bcryptjs")
 
@@ -11,7 +11,7 @@ const login = async ( ctx ) => {
         const user = await UserModel.findOne( { 
             attributes: [ 'id', 'email', "name", "password", "status" ],
             where:{ email: body.email } 
-        } );  
+        } );
         
         if( !user ){
             ctx.status = 404;
@@ -37,6 +37,8 @@ const login = async ( ctx ) => {
 
         const token = await generarToken( user["dataValues"].id )
 
+        ctx.user = user
+
         ctx.status = 202
         return ctx.body = {
             user,
@@ -45,7 +47,7 @@ const login = async ( ctx ) => {
     } catch (error) {
         console.log( error )
         ctx.status = 500
-        ctx.body = {
+        return ctx.body = {
             error,
             msg: "Error en Login"
         }
@@ -60,31 +62,54 @@ const signUp = async ( ctx ) => {
         const hashPasword = bcrypyjs.hashSync( tempPass, salt )
 
         const user = await UserModel.create( body );
+        
         user.password = hashPasword;
-
+        
+        await user.createCart()
+        
         await user.save();
 
         const token = await generarToken( user["dataValues"].id )
-        
+
         ctx.status = 201
-        ctx.body = {
+        return ctx.body = {
             user,
             token
         }
     } catch (error) {
         console.log( error )
         ctx.status = 500
-        ctx.body = {
+        return ctx.body = {
+            msg: "Error en el server",
             error,
-            msg: "Error en el server"
         }
     }
 }
 
-// To-Do: impelementar la renovacion de token
-// const renew = async ( ctx ) => {}
+const renew = async ( ctx ) => {
+    try {
+        const { request } = ctx
+        const { token } = request.headers
+        
+        const user = await comprobarJWT( token )
+        const { id } = user["dataValues"]
+        const newToken = await generarToken( id )
+
+        ctx.status = 200;
+        return ctx.body = {
+            token: newToken
+        }
+    } catch( error ) {
+        console.log( error )
+        ctx.status = 500
+        return ctx.body = {
+            msg: "Error en renew.js",
+        }
+    }
+}
 
 module.exports = {
     login,
-    signUp
+    signUp,
+    renew
 }

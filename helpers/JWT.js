@@ -9,7 +9,7 @@ const generarToken = async ( id = "" ) => {
         jwt.sign( payload, key, { expiresIn: "24h" }, ( err, token ) => {
             if( err ){
                 console.log( err );
-                reject( new Error( "Error generarToken - JWT" ) )
+                reject( new Error( "Error generarToken - JWT.js" ) )
             }else{
                 resolve( token )
             }
@@ -32,12 +32,27 @@ const comprobarJWT = async ( token ) => {
             return user;
         }
     } catch( err ){
-        console.log( error );
-        throw new Error( "Error comprobarJWT - JWT" )
+        throw new Error( err )
     }
+}
+
+const isExpiredJWT = ( token ) => {
+    try {
+        const { exp } = jwt.decode( token );
+        
+        if( Date.now() >= exp * 1000 ){
+          return true;
+        }
+
+        return true;
+      } catch (err) {
+        console.log( err )
+        throw new Error( "Error in isExpiredJWT - JWT.js" )
+      }
 }
 
 module.exports = {
     generarToken,
     comprobarJWT,
+    // isExpiredJWT
 }

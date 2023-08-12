@@ -1,6 +1,4 @@
 
-
-// To-Do: terminar la validacion del token
 const validarJWT = async ( ctx, next ) => {
     try {
         const { request:{ headers } } = ctx
