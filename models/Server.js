@@ -82,7 +82,7 @@ class Server {
         Product.belongsToMany( Order, { through: OrderItem } );     // OrderItem used as junction table
 
         const { NODE_ENV } = process.env
-        const setting = NODE_ENV !== "development" ? { force: true } : {} 
+        const setting = NODE_ENV === "development" ? { force: true } : {} 
         
         sqlz.sync( setting ).then( () => {
             console.log( "Connection to DB done!!" )

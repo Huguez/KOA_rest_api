@@ -7,6 +7,7 @@ const userSchema = {
             name:     Joi.string().required(),
             email:    Joi.string().email().required(),
             age:      Joi.number().integer().min(18).max(100).required(),
+            role:     Joi.string().required(),
             password: Joi.string().required(),
         })
     } ),
