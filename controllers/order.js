@@ -5,6 +5,7 @@ const { Order: OrderModel } = require("../models/Order")
 const createOrder = async ( ctx ) => {
     try {
         const { request } = ctx
+        const { body } = request
         const { token } = request.headers
 
         const user = await comprobarJWT( token )
@@ -16,7 +17,7 @@ const createOrder = async ( ctx ) => {
         let totalQty = 0;
         products.forEach( p => totalQty += p.cartItem.qty )
 
-        const orderAux = await user.createOrder({ qty: totalQty })
+        const orderAux = await user.createOrder({ qty: totalQty, address: body.address })
 
         const orders = await orderAux.addProducts( products.map( product => {
             product.orderItem = { qty: product.cartItem.qty }   
@@ -66,7 +67,7 @@ const getOrderById = async ( ctx ) => {
     try {
         const orderId = ctx.params.id
         
-        const orderAux = await OrderModel.findOne({ where:{ orderId } })
+        const orderAux = await OrderModel.findByPk( orderId )
 
         const products = await orderAux.getProducts()
         
@@ -92,7 +93,7 @@ const updateOrder = async ( ctx ) => {
         const orderId = ctx.params.id
         const { address } = ctx.request.body
 
-        const order = await OrderModel.findAll( { where: { id: orderId }  } )
+        const order = await OrderModel.findByPk( orderId )
         
         await order.set( { address } )
 
@@ -116,7 +117,7 @@ const deleteOrder = async ( ctx ) => {
     try {
         const orderId = ctx.params.id
 
-        const order = await OrderModel.findOne({ where:{ id: orderId } })
+        const order = await OrderModel.findByPk( orderId )
 
         await order.set({
             status: false

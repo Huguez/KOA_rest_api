@@ -12,7 +12,7 @@ router.use( errorHandler );
 
 router.use( validarJWT );
 
-router.post( "/create", createOrder )
+router.post( "/create", OrderSchema.createValidation, createOrder )
 
 router.get( "/", getOrders )
 

@@ -4,7 +4,7 @@ const Joi = require("joi")
 const cartSchema = {
     updateValidator: koaJoiValidate({
         body: Joi.object({
-            productId: Joi.string().required()
+            productId: Joi.number().integer().required()
         })
     })
 }

@@ -1,19 +1,25 @@
 const Joi = require("joi")
 const KoaJoiValidate = require("koa-joi-validate")
 
+const params = Joi.object({
+    id: Joi.string().required()
+});
+
+const body = Joi.object({
+    address: Joi.string().required()
+});
+
+
 const orderSchema = {
+    createValidation: KoaJoiValidate( {
+        body
+    } ),
     updateValidation: KoaJoiValidate( {
-        params: Joi.object({
-            id: Joi.string().required()
-        }),
-        body: Joi.object({
-            address: Joi.string().required()
-        })
+        params,
+        body
     } ),
     deleteValidation: KoaJoiValidate( {
-        params: Joi.object({
-            id: Joi.string().required()
-        })
+        params
     } )
 }
 
