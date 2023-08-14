@@ -12,6 +12,13 @@ const createUser = async ( ctx ) => {
 
         const userA = await comprobarJWT( token )
 
+        if( !userA ){
+            ctx.status = 401
+            return ctx.body = {
+                msg: `don't exist the user with token: ${ token } `
+            }
+        }
+
         if( userA["dataValues"].role !== "ADMIN" ){
             ctx.status = 401
             return ctx.body = {

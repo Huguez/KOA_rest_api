@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken")
 const UserModel = require("../models/User");
 
-const generarToken = async ( id = "" ) => {
+const generarToken = async ( id = null ) => {
     return new Promise( ( resolve, reject ) => {
         const payload = { id };
         key = process.env.SECRET_KEY
@@ -17,7 +17,7 @@ const generarToken = async ( id = "" ) => {
     } );
 }
 
-const comprobarJWT = async ( token ) => {
+const comprobarJWT = async ( token = null ) => {
     try{
         if( !token ){
             return false
@@ -36,23 +36,7 @@ const comprobarJWT = async ( token ) => {
     }
 }
 
-const isExpiredJWT = ( token ) => {
-    try {
-        const { exp } = jwt.decode( token );
-        
-        if( Date.now() >= exp * 1000 ){
-          return true;
-        }
-
-        return true;
-      } catch (err) {
-        console.log( err )
-        throw new Error( "Error in isExpiredJWT - JWT.js" )
-      }
-}
-
 module.exports = {
     generarToken,
     comprobarJWT,
-    // isExpiredJWT
 }

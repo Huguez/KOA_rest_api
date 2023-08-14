@@ -11,7 +11,7 @@ router.use( errorHandler );
 
 router.use( validarJWT )
 
-router.post( "/create", userSchema.bodyValidate, createUser )
+router.post( "/create", userSchema.createValidate, createUser )
 
 router.get( "/:id", userSchema.paramsValidate, getUserById )
 
